@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Sheetwalk favicon</title>
+<desc>Brass corner crop marks around a short dashed walking path on a dark badge.</desc>
+<rect x="1" y="1" width="30" height="30" rx="6" fill="#15140f"/>
+<g stroke="#c9a13b" stroke-width="1.6" stroke-linecap="round">
+<path d="M5 10 V5 H10" fill="none"/>
+<path d="M22 5 H27 V10" fill="none"/>
+<path d="M27 22 V27 H22" fill="none"/>
+<path d="M10 27 H5 V22" fill="none"/>
+</g>
+<line x1="11" y1="14" x2="21" y2="19" stroke="#ece7d9" stroke-width="1.8" stroke-dasharray="2.5,2" stroke-linecap="round"/>
+<circle cx="21" cy="19" r="2.1" fill="#c9a13b"/>
+</svg>

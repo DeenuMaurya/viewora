@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Edit Rooms</title>
+<link rel="stylesheet" href="/css/viewer.css" />
+</head>
+<body>
+
+<canvas id="renderCanvas"></canvas>
+
+<div id="loadingScreen">
+  <div class="loader-label">Loading walkthrough</div>
+  <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderFill"></div></div>
+</div>
+
+<div id="topBar">
+  <a class="brand" href="/dashboard.html" aria-label="Dashboard">
+    <img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Brand logo" />
+  </a>
+  <div>
+    <span class="project-name" id="projectName"></span>
+  </div>
+</div>
+
+<div id="viewerActions">
+  <button class="action-btn action-btn-primary" id="btnPlayTour" type="button" style="display:none;">
+    <svg class="icon icon-main" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <polygon points="6 4 20 12 6 20 6 4" />
+    </svg>
+    <svg class="icon icon-alt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
+    </svg>
+    <span class="tour-label">Play tour</span>
+  </button>
+  <button class="action-btn action-btn-icon" id="btnFullscreen" type="button" title="Fullscreen" aria-label="Fullscreen">
+    <svg class="icon icon-main" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+    <svg class="icon icon-alt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="4 14 10 14 10 20" /><polyline points="20 10 14 10 14 4" />
+      <line x1="14" y1="10" x2="21" y2="3" /><line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+  </button>
+</div>
+
+<div id="saveStatus"></div>
+
+<div id="hotspotLayer"></div>
+<div id="moveMarker"></div>
+
+<aside id="inspectorPanel">
+  <div class="inspector-scroll">
+    <section class="inspector-section">
+      <button class="inspector-head" id="btnViewsCollapse" type="button" aria-expanded="true">
+        <span class="inspector-caret">&minus;</span> Views
+      </button>
+      <div class="inspector-body" id="viewsBody">
+        <div class="inspector-list" id="inspectorViews"></div>
+        <div class="inspector-list-actions">
+          <button class="inspector-add" id="btnAddView" type="button">+ Add view</button>
+        </div>
+
+        <div id="inspectorDetails">
+          <label class="inspector-field">
+            <span class="inspector-label">Name</span>
+            <input type="text" id="inspectorName" maxlength="40" placeholder="e.g. Living room" />
+          </label>
+
+          <div class="inspector-field">
+            <span class="inspector-label">Camera orientation</span>
+            <button class="inspector-set" id="btnSetCurrent" type="button">
+              <span class="inspector-set-icon">&#9678;</span> Set current
+            </button>
+          </div>
+
+          <div class="inspector-field">
+            <span class="inspector-label">Position</span>
+            <div class="inspector-grid three">
+              <label><span>X</span><input type="number" step="0.01" id="inspectorX" /></label>
+              <label><span>Y</span><input type="number" step="0.01" id="inspectorY" /></label>
+              <label><span>Z</span><input type="number" step="0.01" id="inspectorZ" /></label>
+            </div>
+          </div>
+
+          <div class="inspector-field">
+            <span class="inspector-label">Rotation (degrees)</span>
+            <div class="inspector-grid three">
+              <label><span>X</span><input type="number" step="1" id="inspectorRotX" /></label>
+              <label><span>Y</span><input type="number" step="1" id="inspectorRotY" /></label>
+              <label><span>Z</span><input type="number" step="1" id="inspectorRotZ" /></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="inspector-empty" id="inspectorEmpty">No view selected.</div>
+      </div>
+    </section>
+
+    <section class="inspector-section">
+      <button class="inspector-head" type="button" aria-expanded="true">
+        <span class="inspector-caret">&minus;</span> Player start
+      </button>
+      <div class="inspector-body">
+        <div class="inspector-field">
+          <button class="inspector-set" id="btnStartSetCurrent" type="button">
+            <span class="inspector-set-icon">&#9678;</span> Use current position
+          </button>
+          <button class="inspector-set" id="btnStartGo" type="button">
+            <span class="inspector-set-icon">&#8594;</span> Preview start
+          </button>
+          <button class="inspector-set danger" id="btnStartClear" type="button">
+            <span class="inspector-set-icon">&#10005;</span> Clear start
+          </button>
+        </div>
+
+        <div id="startDetails">
+          <div class="inspector-field">
+            <span class="inspector-label">Position</span>
+            <div class="inspector-grid three">
+              <label><span>X</span><input type="number" step="0.01" id="startX" /></label>
+              <label><span>Y</span><input type="number" step="0.01" id="startY" /></label>
+              <label><span>Z</span><input type="number" step="0.01" id="startZ" /></label>
+            </div>
+          </div>
+
+          <div class="inspector-field">
+            <span class="inspector-label">Rotation (degrees)</span>
+            <div class="inspector-grid three">
+              <label><span>X</span><input type="number" step="1" id="startRotX" /></label>
+              <label><span>Y</span><input type="number" step="1" id="startRotY" /></label>
+              <label><span>Z</span><input type="number" step="1" id="startRotZ" /></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="inspector-empty" id="startEmpty"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="inspector-footer">
+    <button class="inspector-save" id="btnInspectorSave" type="button">Save changes</button>
+  </div>
+</aside>
+
+<div id="roomsPanel">
+  <div id="roomsList"></div>
+  <button class="rooms-panel-toggle" id="btnRoomsCollapse">▲</button>
+</div>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script src="/js/viewer-core.js"></script>
+<script>
+let currentRooms = [];
+let currentStart = null; // null = no author-chosen spawn point
+let projectId = null;
+
+function showSaveStatus(text) {
+  const el = document.getElementById("saveStatus");
+  el.textContent = text;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+async function saveRooms() {
+  if (!projectId) return;
+  try {
+    const res = await fetch(`/api/projects/${projectId}/rooms`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      // `start` is always sent — including as null — so clearing it persists.
+      body: JSON.stringify({ rooms: currentRooms, start: currentStart })
+    });
+    if (res.status === 401) {
+      window.location.href = "/login.html";
+      return;
+    }
+    if (!res.ok) throw new Error("Save failed");
+    showSaveStatus("Saved ✓");
+  } catch (err) {
+    showSaveStatus("Save failed — check connection");
+  }
+}
+
+async function main() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  projectId = params.get("id");
+
+  if (!token || !projectId) {
+    document.getElementById("loadingScreen").innerHTML = '<div class="loader-label">Invalid editor link</div>';
+    return;
+  }
+
+  // Confirm the visitor is actually logged in before doing anything else.
+  const meRes = await fetch("/api/auth/me", { credentials: "include" });
+  if (!meRes.ok) {
+    window.location.href = "/login.html";
+    return;
+  }
+
+  let data;
+  try {
+    const res = await fetch(`/api/projects/public/${token}`);
+    if (!res.ok) throw new Error("not found");
+    data = await res.json();
+  } catch (err) {
+    document.getElementById("loadingScreen").innerHTML = '<div class="loader-label">Project not found</div>';
+    return;
+  }
+
+  currentRooms = data.rooms || [];
+  currentStart = data.start || null;
+  document.getElementById("projectName").textContent = data.name;
+  document.title = "Edit — " + data.name;
+
+  ViewerCore.boot({
+    canvas: document.getElementById("renderCanvas"),
+    modelUrl: data.modelUrl,
+    rooms: data.rooms,
+    start: data.start,
+    editable: true,
+    onRoomsChanged: (rooms) => { currentRooms = rooms; },
+    onStartChanged: (start) => { currentStart = start; },
+    onLoadError: () => {
+      document.getElementById("loadingScreen").innerHTML = '<div class="loader-label">Model could not be loaded</div>';
+    }
+  });
+
+  document.getElementById("btnInspectorSave").addEventListener("click", saveRooms);
+}
+main();
+</script>
+
+</body>
+</html>

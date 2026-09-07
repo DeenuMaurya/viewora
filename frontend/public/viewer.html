@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Walkthrough</title>
+<link rel="stylesheet" href="/css/viewer.css" />
+</head>
+<body>
+
+<canvas id="renderCanvas"></canvas>
+
+<div id="loadingScreen">
+  <div class="loader-label">Loading walkthrough</div>
+  <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderFill"></div></div>
+</div>
+
+<div id="topBar">
+  <div class="viewer-nav">
+    <button class="action-btn back-btn" id="btnBack" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+      </svg>
+      Back
+    </button>
+    <a class="brand" href="/" aria-label="Home">
+      <img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Brand logo" />
+    </a>
+  </div>
+  <span class="project-name" id="projectName"></span>
+</div>
+
+<div id="viewerActions">
+  <button class="action-btn action-btn-primary" id="btnPlayTour" type="button" style="display:none;">
+    <svg class="icon icon-main" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <polygon points="6 4 20 12 6 20 6 4" />
+    </svg>
+    <svg class="icon icon-alt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
+    </svg>
+    <span class="tour-label">Play tour</span>
+  </button>
+  <button class="action-btn action-btn-icon" id="btnFullscreen" type="button" title="Fullscreen" aria-label="Fullscreen">
+    <svg class="icon icon-main" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+    <svg class="icon icon-alt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="4 14 10 14 10 20" /><polyline points="20 10 14 10 14 4" />
+      <line x1="14" y1="10" x2="21" y2="3" /><line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+  </button>
+</div>
+
+<div id="hotspotLayer"></div>
+<div id="moveMarker"></div>
+
+<div id="roomsPanel">
+  <div id="roomsList"></div>
+  <button class="rooms-panel-toggle" id="btnRoomsCollapse">▲</button>
+</div>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script src="/js/viewer-core.js"></script>
+<script>
+async function main() {
+  const backBtn = document.getElementById("btnBack");
+  if (backBtn) {
+    backBtn.addEventListener("click", async () => {
+      const goToFallback = async () => {
+        try {
+          const res = await fetch("/api/auth/me", { credentials: "include" });
+          window.location.href = res.ok ? "/dashboard.html" : "/";
+        } catch (err) {
+          window.location.href = "/";
+        }
+      };
+
+      if (window.history.length > 1 && document.referrer) {
+        window.history.back();
+        return;
+      }
+
+      await goToFallback();
+    });
+  }
+
+  const token = window.location.pathname.split("/view/")[1];
+  if (!token) {
+    document.getElementById("loadingScreen").innerHTML =
+      '<div class="loader-label">Invalid link</div>';
+    return;
+  }
+
+  let data;
+  try {
+    const res = await fetch(`/api/projects/public/${token}`);
+    if (!res.ok) throw new Error("Project not found");
+    data = await res.json();
+  } catch (err) {
+    document.getElementById("loadingScreen").innerHTML =
+      '<div class="loader-label">This walkthrough could not be found</div>';
+    return;
+  }
+
+  document.getElementById("projectName").textContent = data.name;
+  document.title = data.name + " — Walkthrough";
+
+  window.viewer = ViewerCore.boot({
+    canvas: document.getElementById("renderCanvas"),
+    modelUrl: data.modelUrl,
+    rooms: data.rooms,
+    start: data.start,
+    editable: false,
+    onLoadError: () => {
+      document.getElementById("loadingScreen").innerHTML =
+        '<div class="loader-label">Model could not be loaded</div>';
+    }
+  });
+}
+main();
+</script>
+
+</body>
+</html>

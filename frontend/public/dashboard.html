@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Manage your 3D walkthroughs on Sheetwalk - Upload models, create projects, and share interactive experiences." />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Dashboard — Sheetwalk</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+  <header>
+    <a class="brand" href="/" aria-label="Home">
+      <img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Brand logo" />
+    </a>
+    <nav aria-label="Account menu">
+      <span id="userEmail" class="user-email" aria-label="Your email"></span>
+      <a href="#logout" id="logoutLink">Log out</a>
+    </nav>
+  </header>
+
+  <main class="dash-wrap">
+    <section class="dash-header">
+      <div>
+        <h1>Your Projects</h1>
+        <p class="subtitle">Create interactive 3D walkthroughs by uploading models and marking rooms</p>
+      </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section class="upload-card" aria-labelledby="upload-heading">
+      <h2 id="upload-heading" style="margin-bottom: 16px; font-size: 18px;">Upload new model</h2>
+
+      <div class="error-msg" id="uploadError" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+      <form id="uploadForm" novalidate>
+        <div class="upload-row">
+          <div class="field">
+            <label for="projectName">Project name <span style="color: #ef4444;">*</span></label>
+            <input
+              type="text"
+              id="projectName"
+              name="projectName"
+              placeholder="e.g. Modern Office"
+              required
+              aria-required="true"
+              aria-describedby="name-help"
+            />
+            <small id="name-help" class="form-text">Give your project a descriptive name</small>
+          </div>
+
+          <div class="field">
+            <label for="modelFile">Model file (.glb / .gltf) <span style="color: #ef4444;">*</span></label>
+            <input
+              type="file"
+              id="modelFile"
+              name="modelFile"
+              accept=".glb,.gltf"
+              required
+              aria-required="true"
+              aria-describedby="file-help"
+            />
+            <small id="file-help" class="form-text">Supported formats: GLB, GLTF (Max 300MB)</small>
+          </div>
+
+          <button type="submit" class="primary" id="uploadBtn">
+            <span id="uploadBtnText">Upload model</span>
+            <span id="uploadBtnSpinner" class="spinner" style="display: none; width: 16px; height: 16px;"></span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Projects List -->
+    <section aria-labelledby="projects-heading" style="margin-top: 32px;">
+      <h2 id="projects-heading" style="font-size: 18px; margin-bottom: 16px;">Your Projects</h2>
+      <div class="project-list" id="projectList" role="region" aria-live="polite" aria-atomic="true">
+        <div class="empty-state" role="status">Loading your projects...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Share Modal -->
+  <div class="share-modal-overlay" id="shareModalOverlay" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="share-modal">
+      <div class="share-modal-header">
+        <h2 id="modal-title">Share this walkthrough</h2>
+        <button class="share-modal-close" id="btnCloseShare" aria-label="Close dialog">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+
+      <div class="share-content">
+        <div>
+          <label for="shareLinkInput">Direct link</label>
+          <p class="form-text" style="margin-bottom: 12px;">Anyone with this link can view your walkthrough</p>
+          <div class="copy-row">
+            <input
+              type="text"
+              id="shareLinkInput"
+              readonly
+              aria-label="Direct share link"
+            />
+            <button class="pill-btn small" id="btnCopyLink" aria-label="Copy link to clipboard">Copy</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <label for="shareEmbedInput">Embed code</label>
+          <p class="form-text" style="margin-bottom: 12px;">Paste this into your website or blog</p>
+          <div class="copy-row">
+            <textarea
+              id="shareEmbedInput"
+              readonly
+              rows="3"
+              aria-label="Embed code for website"
+            ></textarea>
+            <button class="pill-btn small" id="btnCopyEmbed" aria-label="Copy embed code to clipboard">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility Functions
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function showError(message, element) {
+      element.textContent = message;
+      element.classList.add("show");
+    }
+
+    function hideError(element) {
+      element.textContent = "";
+      element.classList.remove("show");
+    }
+
+    async function copyToClipboard(text, btn) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.textContent;
+        btn.textContent = "✓ Copied!";
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      } catch (err) {
+        alert("Could not copy - please try manually selecting the text");
+      }
+    }
+
+    // Auth
+    async function requireLogin() {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (!res.ok) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return res.json();
+    }
+
+    // Load Projects
+    async function loadProjects() {
+      const res = await fetch("/api/projects", { credentials: "include" });
+      if (res.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      const projects = await res.json();
+      const list = document.getElementById("projectList");
+
+      if (projects.length === 0) {
+        list.innerHTML = '<div class="empty-state">No projects yet. Upload your first 3D model above to get started.</div>';
+        return;
+      }
+
+      list.innerHTML = "";
+      projects.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "project-row";
+        const date = new Date(p.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+
+        row.innerHTML = `
+          <div>
+            <div class="pname">${escapeHtml(p.name)}</div>
+            <div class="pdate">Created on ${date}</div>
+          </div>
+          <div class="project-actions">
+            <a class="view" href="/view/${p.shareToken}">
+              Open
+            </a>
+            <a class="edit" href="/editor.html?token=${p.shareToken}&id=${p.id}" aria-label="Edit rooms in ${escapeHtml(p.name)}">
+              Edit
+            </a>
+            <button class="share-btn" data-token="${p.shareToken}" aria-label="Share ${escapeHtml(p.name)}">
+              Share
+            </button>
+            <button class="danger" data-id="${p.id}" aria-label="Delete ${escapeHtml(p.name)}">
+              Delete
+            </button>
+          </div>
+        `;
+
+        row.querySelector(".share-btn").addEventListener("click", () => openShareModal(p.shareToken));
+        row.querySelector(".danger").addEventListener("click", () => deleteProject(p.id, p.name));
+        list.appendChild(row);
+      });
+    }
+
+    // Delete Project
+    async function deleteProject(id, name) {
+      if (!confirm(`Are you sure you want to permanently delete "${name}"? This cannot be undone.`)) return;
+
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        loadProjects();
+      } else {
+        alert("Failed to delete project. Please try again.");
+      }
+    }
+
+    // Share Modal
+    function openShareModal(shareToken) {
+      const fullUrl = `${window.location.origin}/view/${shareToken}`;
+      const embedCode = `<iframe src="${fullUrl}" width="800" height="600" style="border: none; border-radius: 8px;" allow="fullscreen" title="Sheetwalk 3D Walkthrough"></iframe>`;
+
+      document.getElementById("shareLinkInput").value = fullUrl;
+      document.getElementById("shareEmbedInput").value = embedCode;
+      document.getElementById("shareModalOverlay").classList.add("show");
+      document.getElementById("shareModalOverlay").setAttribute("aria-hidden", "false");
+    }
+
+    function closeShareModal() {
+      document.getElementById("shareModalOverlay").classList.remove("show");
+      document.getElementById("shareModalOverlay").setAttribute("aria-hidden", "true");
+    }
+
+    // Upload Form
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("projectName").value.trim();
+      const file = document.getElementById("modelFile").files[0];
+      const errorEl = document.getElementById("uploadError");
+      const btn = document.getElementById("uploadBtn");
+      const btnText = document.getElementById("uploadBtnText");
+      const btnSpinner = document.getElementById("uploadBtnSpinner");
+
+      hideError(errorEl);
+
+      // Validation
+      if (!name) {
+        showError("Please enter a project name", errorEl);
+        return;
+      }
+
+      if (!file) {
+        showError("Please select a model file", errorEl);
+        return;
+      }
+
+      if (!['model/gltf-binary', 'model/gltf+json', 'application/octet-stream'].includes(file.type) &&
+          !file.name.endsWith('.glb') && !file.name.endsWith('.gltf')) {
+        showError("Please select a valid GLB or GLTF file", errorEl);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("model", file);
+
+      btn.disabled = true;
+      btnText.style.display = "none";
+      btnSpinner.style.display = "inline-block";
+
+      try {
+        const res = await fetch("/api/projects", {
+          method: "POST",
+          credentials: "include",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || "Upload failed. Please try again.", errorEl);
+          btn.disabled = false;
+          btnText.style.display = "inline";
+          btnSpinner.style.display = "none";
+          return;
+        }
+
+        btnText.textContent = "✓ Uploaded successfully";
+        document.getElementById("uploadForm").reset();
+
+        setTimeout(() => {
+          loadProjects();
+          btn.disabled = false;
+          btnText.textContent = "Upload model";
+          btnText.style.display = "inline";
+          btnSpinner.style.display = "none";
+        }, 800);
+      } catch (err) {
+        showError("Connection error. Please check your internet and try again.", errorEl);
+        btn.disabled = false;
+        btnText.style.display = "inline";
+        btnSpinner.style.display = "none";
+      }
+    });
+
+    // Modal Events
+    document.getElementById("btnCloseShare").addEventListener("click", closeShareModal);
+    document.getElementById("shareModalOverlay").addEventListener("click", (e) => {
+      if (e.target.id === "shareModalOverlay") closeShareModal();
+    });
+
+    document.getElementById("btnCopyLink").addEventListener("click", (e) => {
+      copyToClipboard(document.getElementById("shareLinkInput").value, e.target);
+    });
+
+    document.getElementById("btnCopyEmbed").addEventListener("click", (e) => {
+      copyToClipboard(document.getElementById("shareEmbedInput").value, e.target);
+    });
+
+    // Logout
+    document.getElementById("logoutLink").addEventListener("click", async (e) => {
+      e.preventDefault();
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      window.location.href = "/login.html";
+    });
+
+    // Initialize
+    (async () => {
+      const user = await requireLogin();
+      if (user) {
+        document.getElementById("userEmail").textContent = user.email;
+        loadProjects();
+      }
+    })();
+  </script>
+</body>
+</html>
