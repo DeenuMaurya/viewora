@@ -64,7 +64,7 @@
                 aria-required="true"
                 aria-describedby="file-help"
               />
-              <small id="file-help" class="form-text">Supported format: GLB 2.0 (Max 300MB)</small>
+              <small id="file-help" class="form-text">Supported format: GLB 2.0 (Max 50MB)</small>
             </div>
 
             <div class="field">
@@ -390,7 +390,7 @@
         }
       }
 
-      function createProjectWithProgress(formData, onProgress) {
+      function createLegacyProjectWithProgress(formData, onProgress) {
         return new Promise((resolve, reject) => {
           const request = new XMLHttpRequest();
           request.open("POST", "/api/projects");
@@ -411,6 +411,49 @@
           );
           request.send(formData);
         });
+      }
+
+      function uploadToSignedUrl(url, file, onProgress) {
+        return new Promise((resolve, reject) => {
+          const request = new XMLHttpRequest();
+          request.open("PUT", url);
+          request.setRequestHeader("Content-Type", "model/gltf-binary");
+          request.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+          });
+          request.addEventListener("load", () => {
+            if (request.status >= 200 && request.status < 300) return resolve();
+            reject(new Error("Cloud storage upload failed. Please try again."));
+          });
+          request.addEventListener("error", () => reject(new Error("Network error during upload.")));
+          request.send(file);
+        });
+      }
+
+      async function createProjectWithProgress(formData, onProgress) {
+        const model = formData.get("model");
+        const name = formData.get("name");
+        const prepare = await fetch("/api/projects/upload-url", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, filename: model.name, size: model.size })
+        });
+
+        // Local development keeps the original Express + SQLite upload route.
+        if (prepare.status === 404) return createLegacyProjectWithProgress(formData, onProgress);
+        const data = await prepare.json();
+        if (!prepare.ok) throw new Error(data.error || "Could not prepare the upload");
+        try {
+          await uploadToSignedUrl(data.uploadUrl, model, onProgress);
+          return data;
+        } catch (error) {
+          // Remove the metadata reservation if the direct object upload fails.
+          await fetch(`/api/projects/${data.id}`, { method: "DELETE", credentials: "include" }).catch(
+            () => {}
+          );
+          throw error;
+        }
       }
 
       async function updateProject(id, changes) {
@@ -545,8 +588,8 @@
           showError("Please select a valid GLB model file", errorEl);
           return;
         }
-        if (file.size > 300 * 1024 * 1024) {
-          showError("Model file must be 300MB or smaller", errorEl);
+        if (file.size > 50 * 1024 * 1024) {
+          showError("Model file must be 50MB or smaller", errorEl);
           return;
         }
 

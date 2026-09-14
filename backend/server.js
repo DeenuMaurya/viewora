@@ -18,8 +18,10 @@ if (unsafeJwtSecret) {
   process.exit(1);
 }
 
-const authRoutes = require("./routes/auth");
-const projectRoutes = require("./routes/projects");
+const { isSupabaseConfigured } = require("./supabase");
+const useSupabase = isSupabaseConfigured();
+const authRoutes = useSupabase ? require("./routes/supabase-auth") : require("./routes/auth");
+const projectRoutes = useSupabase ? require("./routes/supabase-projects") : require("./routes/projects");
 
 const app = express();
 
