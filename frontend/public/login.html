@@ -1,222 +1,234 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Log in to your Sheetwalk account to manage your 3D walkthroughs." />
-  <meta name="theme-color" content="#3b82f6" />
-  <title>Log in — Sheetwalk</title>
-  <link rel="stylesheet" href="/css/auth.css" />
-</head>
-<body>
-  <header>
-    <a class="brand" href="/" aria-label="Home">
-      <img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Brand logo" />
-    </a>
-    <nav aria-label="Secondary navigation">
-      <a href="/register.html">Create account</a>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Log in to your Viewora account to manage your 3D walkthroughs." />
+    <meta name="theme-color" content="#3b82f6" />
+    <title>Log in — Viewora</title>
+    <link rel="stylesheet" href="/css/auth.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/" aria-label="Home">
+        <img class="brand-logo" src="/brand/viewora-logo.png" alt="Viewora" />
+      </a>
+      <nav aria-label="Secondary navigation">
+        <a href="/register.html">Create account</a>
+      </nav>
+    </header>
 
-  <main class="auth-wrap">
-    <div class="auth-container">
-      <section class="auth-card">
-        <h1>Welcome back</h1>
-        <p class="sub">Log in to your account to manage your 3D walkthroughs and projects.</p>
+    <main class="auth-wrap">
+      <div class="auth-container">
+        <section class="auth-card">
+          <h1>Welcome back</h1>
+          <p class="sub">Log in to your account to manage your 3D walkthroughs and projects.</p>
 
-        <div class="error-msg" id="errorMsg" role="alert" aria-live="polite" aria-atomic="true"></div>
+          <div class="error-msg" id="errorMsg" role="alert" aria-live="polite" aria-atomic="true"></div>
 
-        <form id="loginForm" novalidate>
-          <div class="form-group">
-            <label for="email">Email address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              autocomplete="email"
-              placeholder="you@example.com"
-              aria-describedby="email-help"
-            />
-            <small id="email-help" class="form-text">We'll never share your email.</small>
+          <form id="loginForm" novalidate>
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="you@example.com"
+                aria-describedby="email-help"
+              />
+              <small id="email-help" class="form-text">We'll never share your email.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button type="submit" class="primary" id="submitBtn" style="width: 100%">
+              <span id="btnText">Log in</span>
+              <span id="btnSpinner" class="spinner" style="display: none; width: 16px; height: 16px"></span>
+            </button>
+          </form>
+
+          <div class="switch-link">Don't have an account? <a href="/register.html">Create one</a></div>
+        </section>
+
+        <!-- Right Side: Carousel and Features -->
+        <div class="auth-side">
+          <!-- Image Carousel -->
+          <div class="carousel-container">
+            <div class="carousel-slide active">
+              <img
+                src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=500&fit=crop"
+                alt="Team collaboration"
+                class="carousel-image"
+              />
+            </div>
+            <div class="carousel-slide">
+              <img
+                src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=500&fit=crop&sat=-100"
+                alt="3D design showcase"
+                class="carousel-image"
+              />
+            </div>
+            <div class="carousel-slide">
+              <img
+                src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=500&fit=crop"
+                alt="Interior design"
+                class="carousel-image"
+              />
+            </div>
+
+            <!-- Carousel Controls -->
+            <button class="carousel-btn carousel-prev" aria-label="Previous slide">❮</button>
+            <button class="carousel-btn carousel-next" aria-label="Next slide">❯</button>
+
+            <!-- Carousel Indicators -->
+            <div class="carousel-indicators">
+              <button class="indicator active" data-slide="0" aria-label="Slide 1"></button>
+              <button class="indicator" data-slide="1" aria-label="Slide 2"></button>
+              <button class="indicator" data-slide="2" aria-label="Slide 3"></button>
+            </div>
+
+            <!-- Overlay Text -->
+            <div class="carousel-overlay">
+              <h2>Transform Your Space</h2>
+              <p>Create immersive 3D walkthroughs</p>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              autocomplete="current-password"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button type="submit" class="primary" id="submitBtn" style="width: 100%;">
-            <span id="btnText">Log in</span>
-            <span id="btnSpinner" class="spinner" style="display: none; width: 16px; height: 16px;"></span>
-          </button>
-        </form>
-
-        <div class="switch-link">
-          Don't have an account? <a href="/register.html">Create one</a>
-        </div>
-      </section>
-
-      <!-- Right Side: Carousel and Features -->
-      <div class="auth-side">
-        <!-- Image Carousel -->
-        <div class="carousel-container">
-          <div class="carousel-slide active">
-            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=500&fit=crop" alt="Team collaboration" class="carousel-image" />
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=500&fit=crop&sat=-100" alt="3D design showcase" class="carousel-image" />
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=500&fit=crop" alt="Interior design" class="carousel-image" />
-          </div>
-
-          <!-- Carousel Controls -->
-          <button class="carousel-btn carousel-prev" aria-label="Previous slide">❮</button>
-          <button class="carousel-btn carousel-next" aria-label="Next slide">❯</button>
-
-          <!-- Carousel Indicators -->
-          <div class="carousel-indicators">
-            <button class="indicator active" data-slide="0" aria-label="Slide 1"></button>
-            <button class="indicator" data-slide="1" aria-label="Slide 2"></button>
-            <button class="indicator" data-slide="2" aria-label="Slide 3"></button>
-          </div>
-
-          <!-- Overlay Text -->
-          <div class="carousel-overlay">
-            <h2>Transform Your Space</h2>
-            <p>Create immersive 3D walkthroughs</p>
-          </div>
-        </div>
-
-        <!-- Features -->
-        <div class="auth-features">
-          <div class="feature-item">
-            <div class="feature-icon">🎯</div>
-            <h3>Easy to Use</h3>
-            <p>Upload your 3D model and start creating walkthroughs in minutes</p>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">🔗</div>
-            <h3>Share Instantly</h3>
-            <p>Generate shareable links and embed codes for your projects</p>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">🌍</div>
-            <h3>Global Access</h3>
-            <p>Access your walkthroughs from anywhere, on any device</p>
+          <!-- Features -->
+          <div class="auth-features">
+            <div class="feature-item">
+              <div class="feature-icon">🎯</div>
+              <h3>Easy to Use</h3>
+              <p>Upload your 3D model and start creating walkthroughs in minutes</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🔗</div>
+              <h3>Share Instantly</h3>
+              <p>Generate shareable links and embed codes for your projects</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🌍</div>
+              <h3>Global Access</h3>
+              <p>Access your walkthroughs from anywhere, on any device</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const errorEl = document.getElementById("errorMsg");
-      const btn = document.getElementById("submitBtn");
-      const btnText = document.getElementById("btnText");
-      const btnSpinner = document.getElementById("btnSpinner");
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const errorEl = document.getElementById("errorMsg");
+        const btn = document.getElementById("submitBtn");
+        const btnText = document.getElementById("btnText");
+        const btnSpinner = document.getElementById("btnSpinner");
 
-      errorEl.textContent = "";
-      errorEl.classList.remove("show");
+        errorEl.textContent = "";
+        errorEl.classList.remove("show");
 
-      // Validation
-      if (!email) {
-        errorEl.textContent = "Please enter your email address";
-        errorEl.classList.add("show");
-        return;
-      }
+        // Validation
+        if (!email) {
+          errorEl.textContent = "Please enter your email address";
+          errorEl.classList.add("show");
+          return;
+        }
 
-      if (!password) {
-        errorEl.textContent = "Please enter your password";
-        errorEl.classList.add("show");
-        return;
-      }
+        if (!password) {
+          errorEl.textContent = "Please enter your password";
+          errorEl.classList.add("show");
+          return;
+        }
 
-      btn.disabled = true;
-      btnText.style.display = "none";
-      btnSpinner.style.display = "inline-block";
+        btn.disabled = true;
+        btnText.style.display = "none";
+        btnSpinner.style.display = "inline-block";
 
-      try {
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email, password })
-        });
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password })
+          });
 
-        const data = await res.json();
+          const data = await res.json();
 
-        if (!res.ok) {
-          errorEl.textContent = data.error || "Login failed. Please check your email and password.";
+          if (!res.ok) {
+            errorEl.textContent = data.error || "Login failed. Please check your email and password.";
+            errorEl.classList.add("show");
+            btn.disabled = false;
+            btnText.style.display = "inline";
+            btnSpinner.style.display = "none";
+            return;
+          }
+
+          btnText.textContent = "✓ Logged in";
+          setTimeout(() => {
+            window.location.href = "/dashboard.html";
+          }, 400);
+        } catch (err) {
+          errorEl.textContent = "Connection error. Please check your internet and try again.";
           errorEl.classList.add("show");
           btn.disabled = false;
           btnText.style.display = "inline";
           btnSpinner.style.display = "none";
-          return;
         }
-
-        btnText.textContent = "✓ Logged in";
-        setTimeout(() => { window.location.href = "/dashboard.html"; }, 400);
-      } catch (err) {
-        errorEl.textContent = "Connection error. Please check your internet and try again.";
-        errorEl.classList.add("show");
-        btn.disabled = false;
-        btnText.style.display = "inline";
-        btnSpinner.style.display = "none";
-      }
-    });
-
-    // Carousel Functionality
-    let currentSlide = 0;
-    const slides = document.querySelectorAll(".carousel-slide");
-    const indicators = document.querySelectorAll(".indicator");
-    const totalSlides = slides.length;
-
-    function showSlide(n) {
-      slides.forEach(slide => slide.classList.remove("active"));
-      indicators.forEach(ind => ind.classList.remove("active"));
-
-      slides[n].classList.add("active");
-      indicators[n].classList.add("active");
-    }
-
-    function nextSlide() {
-      currentSlide = (currentSlide + 1) % totalSlides;
-      showSlide(currentSlide);
-    }
-
-    function prevSlide() {
-      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-      showSlide(currentSlide);
-    }
-
-    // Auto-rotate carousel every 5 seconds
-    setInterval(nextSlide, 5000);
-
-    // Button Controls
-    document.querySelector(".carousel-next").addEventListener("click", nextSlide);
-    document.querySelector(".carousel-prev").addEventListener("click", prevSlide);
-
-    // Indicator Controls
-    indicators.forEach((indicator, index) => {
-      indicator.addEventListener("click", () => {
-        currentSlide = index;
-        showSlide(currentSlide);
       });
-    });
-  </script>
-</body>
+
+      // Carousel Functionality
+      let currentSlide = 0;
+      const slides = document.querySelectorAll(".carousel-slide");
+      const indicators = document.querySelectorAll(".indicator");
+      const totalSlides = slides.length;
+
+      function showSlide(n) {
+        slides.forEach((slide) => slide.classList.remove("active"));
+        indicators.forEach((ind) => ind.classList.remove("active"));
+
+        slides[n].classList.add("active");
+        indicators[n].classList.add("active");
+      }
+
+      function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        showSlide(currentSlide);
+      }
+
+      function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(currentSlide);
+      }
+
+      // Auto-rotate carousel every 5 seconds
+      setInterval(nextSlide, 5000);
+
+      // Button Controls
+      document.querySelector(".carousel-next").addEventListener("click", nextSlide);
+      document.querySelector(".carousel-prev").addEventListener("click", prevSlide);
+
+      // Indicator Controls
+      indicators.forEach((indicator, index) => {
+        indicator.addEventListener("click", () => {
+          currentSlide = index;
+          showSlide(currentSlide);
+        });
+      });
+    </script>
+  </body>
 </html>

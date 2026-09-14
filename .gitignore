@@ -1,0 +1,13 @@
+# Local configuration and runtime state
+backend/.env
+backend/data/*
+!backend/data/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/backups/
+
+# Dependencies and diagnostic output
+node_modules/
+.npm-cache/
+npm-debug.log*
+*.log

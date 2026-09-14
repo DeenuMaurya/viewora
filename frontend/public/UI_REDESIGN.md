@@ -1,8 +1,8 @@
-# Sheetwalk UI Redesign - Complete Documentation
+# Viewora UI Redesign - Complete Documentation
 
 ## Overview
 
-The Sheetwalk platform has undergone a comprehensive UI/UX redesign to deliver a modern, accessible, and user-friendly experience. This document outlines all improvements made.
+The Viewora platform has undergone a comprehensive UI/UX redesign to deliver a modern, accessible, and user-friendly experience. This document outlines all improvements made.
 
 ---
 

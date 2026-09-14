@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
   /* Dark theme for viewer */
@@ -13,14 +13,17 @@
   --success: #10b981;
   --danger: #ef4444;
   --text-paper: #f1f5f9;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -30,7 +33,13 @@ html, body {
   font-family: var(--font-sans);
   color: var(--text-paper);
 }
-#renderCanvas { width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#renderCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  outline: none;
+}
 
 /* Loading Screen */
 #loadingScreen {
@@ -95,17 +104,21 @@ html, body {
   display: flex;
   align-items: center;
   flex: none;
+  width: 76px;
   height: 38px;
-  padding: 5px 7px;
+  padding: 0;
+  overflow: hidden;
   border-radius: 8px;
-  background: rgba(21, 20, 15, 0.88);
+  background: transparent;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
 #topBar .brand .brand-logo {
   display: block;
-  width: auto;
-  height: 100%;
+  width: 76px;
+  height: 38px;
+  object-fit: contain;
+  object-position: center;
 }
 
 #topBar .project-name {
@@ -137,6 +150,22 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+#viewerHelp {
+  display: none;
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.76);
+  color: rgba(241, 245, 249, 0.92);
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .back-btn {
@@ -199,8 +228,11 @@ html, body {
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-  transition: background var(--transition-fast), border-color var(--transition-fast),
-              color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -209,7 +241,9 @@ html, body {
   border-color: rgba(148, 163, 184, 0.45);
 }
 
-.action-btn:active { transform: translateY(1px); }
+.action-btn:active {
+  transform: translateY(1px);
+}
 
 /* Keyboard users need a visible ring; :focus-visible keeps it from flashing
    up on every mouse click. */
@@ -232,13 +266,19 @@ html, body {
 }
 
 /* The second icon in each button is the toggled state, hidden by default. */
-.action-btn .icon-alt { display: none; }
+.action-btn .icon-alt {
+  display: none;
+}
 
 #btnPlayTour.playing .icon-main,
-#btnFullscreen.active .icon-main { display: none; }
+#btnFullscreen.active .icon-main {
+  display: none;
+}
 
 #btnPlayTour.playing .icon-alt,
-#btnFullscreen.active .icon-alt { display: block; }
+#btnFullscreen.active .icon-alt {
+  display: block;
+}
 
 /* Play tour is the one thing we actively want visitors to press. */
 .action-btn-primary {
@@ -253,7 +293,9 @@ html, body {
   color: #cffafe;
 }
 
-.action-btn-primary .icon { color: var(--accent); }
+.action-btn-primary .icon {
+  color: var(--accent);
+}
 
 /* Solid while running, so "Stop tour" reads as a live state rather than
    just another idle button. */
@@ -268,7 +310,9 @@ html, body {
   border-color: var(--accent-dark);
 }
 
-#btnPlayTour.playing .icon { color: var(--ink); }
+#btnPlayTour.playing .icon {
+  color: var(--ink);
+}
 
 #btnFullscreen.active {
   border-color: rgba(6, 182, 212, 0.6);
@@ -293,7 +337,9 @@ html, body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
-#inspectorPanel.show { display: flex; }
+#inspectorPanel.show {
+  display: flex;
+}
 
 .inspector-scroll {
   flex: 1;
@@ -329,8 +375,12 @@ html, body {
   color: #94a3b8;
 }
 
-.inspector-body { padding: 0 8px 10px; }
-.inspector-section.collapsed .inspector-body { display: none; }
+.inspector-body {
+  padding: 0 8px 10px;
+}
+.inspector-section.collapsed .inspector-body {
+  display: none;
+}
 
 .inspector-list {
   min-height: 96px;
@@ -350,8 +400,12 @@ html, body {
   padding: 2px;
 }
 
-.inspector-row:hover { background: rgba(148, 163, 184, 0.12); }
-.inspector-row.selected { background: rgba(148, 163, 184, 0.22); }
+.inspector-row:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+.inspector-row.selected {
+  background: rgba(148, 163, 184, 0.22);
+}
 
 .inspector-row-name {
   flex: 1;
@@ -368,7 +422,9 @@ html, body {
   white-space: nowrap;
 }
 
-.inspector-row.selected .inspector-row-name { color: var(--accent); }
+.inspector-row.selected .inspector-row-name {
+  color: var(--accent);
+}
 
 .inspector-icon-btn {
   flex: 0 0 auto;
@@ -387,8 +443,14 @@ html, body {
   transition: all var(--transition-fast);
 }
 
-.inspector-icon-btn:hover { background: rgba(148, 163, 184, 0.2); color: var(--text-paper); }
-.inspector-icon-btn.danger:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+.inspector-icon-btn:hover {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--text-paper);
+}
+.inspector-icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
 
 .inspector-list-actions {
   display: flex;
@@ -411,7 +473,10 @@ html, body {
 }
 
 .inspector-add:hover,
-.inspector-set:hover { border-color: var(--accent); background: rgba(51, 65, 85, 1); }
+.inspector-set:hover {
+  border-color: var(--accent);
+  background: rgba(51, 65, 85, 1);
+}
 
 .inspector-set {
   width: 100%;
@@ -421,16 +486,23 @@ html, body {
   gap: 6px;
 }
 
-.inspector-set-icon { color: var(--accent); }
+.inspector-set-icon {
+  color: var(--accent);
+}
 
 .inspector-set.danger:hover {
   border-color: #ef4444;
   color: #ef4444;
 }
 
-.inspector-set.danger:hover .inspector-set-icon { color: #ef4444; }
+.inspector-set.danger:hover .inspector-set-icon {
+  color: #ef4444;
+}
 
-.inspector-field { display: block; margin-top: 14px; }
+.inspector-field {
+  display: block;
+  margin-top: 14px;
+}
 
 .inspector-label {
   display: block;
@@ -463,14 +535,22 @@ html, body {
   gap: 8px;
 }
 
-.inspector-grid.three { grid-template-columns: repeat(3, 1fr); }
+.inspector-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
 /* Three columns in a 280px panel leaves little room, so trim the padding. */
-.inspector-grid.three input { padding: 7px 6px; }
+.inspector-grid.three input {
+  padding: 7px 6px;
+}
 
 /* Stacked action buttons within one field (e.g. the Player start controls). */
-.inspector-field .inspector-set + .inspector-set { margin-top: 6px; }
+.inspector-field .inspector-set + .inspector-set {
+  margin-top: 6px;
+}
 
-.inspector-grid label { display: block; }
+.inspector-grid label {
+  display: block;
+}
 
 .inspector-grid label span {
   display: block;
@@ -505,7 +585,9 @@ html, body {
   transition: all var(--transition-fast);
 }
 
-.inspector-save:hover { background: rgba(6, 182, 212, 0.12); }
+.inspector-save:hover {
+  background: rgba(6, 182, 212, 0.12);
+}
 
 /* Hotspot */
 .hotspot {
@@ -710,7 +792,6 @@ html, body {
   opacity: 1;
 }
 
-
 /* Save Status */
 #saveStatus {
   position: fixed;
@@ -747,6 +828,9 @@ html, body {
 
 /* Responsive */
 @media (max-width: 768px) {
+  #viewerHelp {
+    display: block;
+  }
   #topBar {
     flex-direction: column;
     gap: 10px;

@@ -1,64 +1,64 @@
 /* Design System - Modern UI Framework */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
   /* Color Palette - Modern Blue/Purple Theme */
-  --primary: #3b82f6;           /* Bright Blue */
-  --primary-dark: #1e40af;      /* Dark Blue */
-  --primary-light: #dbeafe;     /* Light Blue */
-  --secondary: #8b5cf6;         /* Purple */
-  --secondary-dark: #6d28d9;    /* Dark Purple */
-  --accent: #06b6d4;            /* Cyan/Teal */
-  --accent-dark: #0891b2;       /* Dark Cyan */
+  --primary: #3b82f6; /* Bright Blue */
+  --primary-dark: #1e40af; /* Dark Blue */
+  --primary-light: #dbeafe; /* Light Blue */
+  --secondary: #8b5cf6; /* Purple */
+  --secondary-dark: #6d28d9; /* Dark Purple */
+  --accent: #06b6d4; /* Cyan/Teal */
+  --accent-dark: #0891b2; /* Dark Cyan */
 
   /* Semantic Colors */
-  --success: #10b981;           /* Green */
-  --warning: #f59e0b;           /* Amber */
-  --danger: #ef4444;            /* Red */
-  --info: #3b82f6;              /* Blue */
+  --success: #10b981; /* Green */
+  --warning: #f59e0b; /* Amber */
+  --danger: #ef4444; /* Red */
+  --info: #3b82f6; /* Blue */
 
   /* Neutral Palette */
-  --ink: #0f172a;               /* Almost Black - primary text */
-  --ink-secondary: #475569;     /* Secondary text */
-  --ink-tertiary: #64748b;      /* Tertiary text */
-  --paper: #ffffff;             /* White background */
-  --surface: #f8fafc;           /* Light surface */
-  --surface-alt: #f1f5f9;       /* Alternative surface */
-  --border: #e2e8f0;            /* Border color */
-  --border-dark: #cbd5e1;       /* Darker border */
+  --ink: #0f172a; /* Almost Black - primary text */
+  --ink-secondary: #475569; /* Secondary text */
+  --ink-tertiary: #64748b; /* Tertiary text */
+  --paper: #ffffff; /* White background */
+  --surface: #f8fafc; /* Light surface */
+  --surface-alt: #f1f5f9; /* Alternative surface */
+  --border: #e2e8f0; /* Border color */
+  --border-dark: #cbd5e1; /* Darker border */
   --overlay-light: rgba(15, 23, 42, 0.05);
   --overlay-medium: rgba(15, 23, 42, 0.15);
   --overlay-dark: rgba(15, 23, 42, 0.5);
 
   /* Spacing */
-  --spacing-xs: 0.25rem;        /* 4px */
-  --spacing-sm: 0.5rem;         /* 8px */
-  --spacing-md: 1rem;           /* 16px */
-  --spacing-lg: 1.5rem;         /* 24px */
-  --spacing-xl: 2rem;           /* 32px */
-  --spacing-2xl: 3rem;          /* 48px */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem; /* 8px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-2xl: 3rem; /* 48px */
 
   /* Border Radius */
-  --radius-sm: 0.375rem;        /* 6px */
-  --radius-md: 0.5rem;          /* 8px */
-  --radius-lg: 0.75rem;         /* 12px */
-  --radius-xl: 1rem;            /* 16px */
-  --radius-full: 999px;         /* Full rounded */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  --radius-full: 999px; /* Full rounded */
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
 
   /* Font Sizes */
-  --text-xs: 0.75rem;           /* 12px */
-  --text-sm: 0.875rem;          /* 14px */
-  --text-base: 1rem;            /* 16px */
-  --text-lg: 1.125rem;          /* 18px */
-  --text-xl: 1.25rem;           /* 20px */
-  --text-2xl: 1.5rem;           /* 24px */
-  --text-3xl: 1.875rem;         /* 30px */
-  --text-4xl: 2.25rem;          /* 36px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem; /* 36px */
 
   /* Font Weights */
   --font-regular: 400;
@@ -105,18 +105,39 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   line-height: 1.2;
   font-weight: var(--font-bold);
   margin: 0;
 }
 
-h1 { font-size: var(--text-4xl); letter-spacing: -0.02em; }
-h2 { font-size: var(--text-3xl); letter-spacing: -0.015em; }
-h3 { font-size: var(--text-2xl); letter-spacing: -0.01em; }
-h4 { font-size: var(--text-xl); }
-h5 { font-size: var(--text-lg); }
-h6 { font-size: var(--text-base); font-weight: var(--font-semibold); }
+h1 {
+  font-size: var(--text-4xl);
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.015em;
+}
+h3 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.01em;
+}
+h4 {
+  font-size: var(--text-xl);
+}
+h5 {
+  font-size: var(--text-lg);
+}
+h6 {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+}
 
 p {
   margin: 0;
@@ -134,8 +155,13 @@ a {
   transition: color var(--transition-fast);
 }
 
-a:hover { color: var(--primary-dark); }
-a:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+a:hover {
+  color: var(--primary-dark);
+}
+a:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 
 /* Form Elements */
 label {
@@ -162,9 +188,10 @@ select {
   font-family: var(--font-sans);
   background-color: var(--paper);
   color: var(--ink);
-  transition: border-color var(--transition-fast),
-              box-shadow var(--transition-fast),
-              background-color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -451,7 +478,9 @@ button:disabled {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Utility Classes */

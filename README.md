@@ -1,4 +1,4 @@
-# Sheetwalk - Phase 0
+# Viewora - Phase 0
 
 Auth + upload + shareable 3D walkthrough platform (learning project).
 
@@ -11,7 +11,7 @@ backend/
   middleware/        Auth middleware
   db.js              SQLite setup
   data/              Local SQLite database files
-  uploads/           Uploaded .glb/.gltf model files
+  uploads/           Uploaded .glb model files
 
 frontend/
   public/            Static HTML, CSS, and browser JS
@@ -19,13 +19,19 @@ frontend/
 
 ## Setup
 
+Use Node.js 22 or later.
+
 ```
 npm install
 ```
 
-Create your own `backend/.env` and replace `JWT_SECRET` with a real random
-value. Run `openssl rand -hex 32` to generate one. Never deploy with the
-placeholder secret checked into this file.
+Copy `backend/.env.example` to `backend/.env`, then replace `JWT_SECRET` with
+a real random value. Run `openssl rand -hex 32` to generate one. The server
+will not start until the secret is at least 32 characters and is not a
+placeholder. Never commit `backend/.env`.
+
+`backend/data/`, `backend/uploads/`, and `node_modules/` are local runtime
+state and are deliberately ignored by Git.
 
 ## Run
 
@@ -38,11 +44,17 @@ Then open http://localhost:3000
 ## What's here (Phase 0 scope)
 
 - Email/password signup + login (bcrypt + JWT in an httpOnly cookie)
-- Upload a .glb/.gltf model (disk storage, validated extension + size cap)
+- Upload a validated, self-contained GLB 2.0 model (disk storage, size cap)
 - Dashboard: list your projects, delete them
 - Public shareable link per project (/view/:token) - no login needed to view
 - Room editor (owner-only): click a floor point, name it, saves to the database
 - Ownership checks on every write - one user can't edit/delete another's project
+- Owner-only editor project loading, so the project ID cannot be mixed with a public share token
+- Login and upload rate limits plus per-account project/storage quotas
+- Project rename and share-link regeneration
+- Server-side project search, visibility filtering, and newest/oldest/name sorting
+- Optional protected dashboard cover images (PNG, JPG, or WebP), including replace/remove controls
+- Protected model delivery: private models require the owner session and public models require a valid share link
 
 ## What's deliberately NOT here yet
 
@@ -51,10 +63,8 @@ Then open http://localhost:3000
 - Cloud file storage (S3/R2) - files sit on local disk in backend/uploads, fine
   for learning/single-server use, not fine at real scale
 - Password reset flow
-- Rate limiting / upload quotas - a single account could currently upload
-  unlimited files up to the 300MB per-file cap; add this before any public
-  deployment
-- Project renaming, thumbnails, search
+- Distributed rate limiting / quotas - the included in-memory limits are for a
+  single server; use Redis or equivalent when running multiple app instances
 
 ## Deploying this for real
 

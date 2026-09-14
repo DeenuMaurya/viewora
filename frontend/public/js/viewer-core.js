@@ -21,7 +21,7 @@ window.ViewerCore = (function () {
     const editable = !!config.editable;
     const asNumber = (v) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
     // rx/ry/rz are pitch/yaw/roll in radians, matching camera.rotation.
-    let HOTSPOTS = (config.rooms || []).map(r => ({
+    let HOTSPOTS = (config.rooms || []).map((r) => ({
       position: new BABYLON.Vector3(r.x, r.y, r.z),
       label: r.label,
       rx: asNumber(r.rx),
@@ -37,14 +37,15 @@ window.ViewerCore = (function () {
       if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y) || !Number.isFinite(s.z)) return null;
       return {
         position: new BABYLON.Vector3(s.x, s.y, s.z),
-        rx: asNumber(s.rx), ry: asNumber(s.ry), rz: asNumber(s.rz)
+        rx: asNumber(s.rx),
+        ry: asNumber(s.ry),
+        rz: asNumber(s.rz)
       };
     }
 
     const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0.07, 0.08, 0.1, 1);
-
 
     // ---- Lighting ----
     // A HemisphericLight lights surfaces facing its direction with `diffuse`
@@ -97,15 +98,18 @@ window.ViewerCore = (function () {
     scene.activeCamera = walkCamera;
     walkCamera.attachControl(canvas, true);
 
-    let modelCenter = null, modelMin = null, modelMax = null;
+    let modelCenter = null,
+      modelMin = null,
+      modelMax = null;
     let loadedMeshes = [];
 
     let selectedRoomIndex = null; // which view the inspector is editing
     let moveAnim = null;
 
     function computeBounds(meshes) {
-      let min = null, max = null;
-      meshes.forEach(m => {
+      let min = null,
+        max = null;
+      meshes.forEach((m) => {
         const info = m.getBoundingInfo?.();
         if (!info) return;
         const bMin = info.boundingBox.minimumWorld;
@@ -119,29 +123,34 @@ window.ViewerCore = (function () {
     async function loadModel(url) {
       showLoading(true);
       try {
-        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "", url, scene);
+        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "", url, scene, updateLoadingProgress);
         loadedMeshes = result.meshes;
         // Architectural models are static, but skip these optimisations if
         // the file actually ships animations or skinning — freezing would
         // pin those meshes in place.
         const isStatic = (result.animationGroups || []).length === 0 && (result.skeletons || []).length === 0;
-        result.meshes.forEach(m => {
+        result.meshes.forEach((m) => {
           // The walk controller raycasts against these meshes every frame.
           // On a dense architectural mesh a ray would otherwise be tested
           // against tens of thousands of triangles; a submesh octree narrows
           // it to the triangles the ray actually passes near.
           if (m.getTotalVertices && m.getTotalVertices() > 0 && m.createOrUpdateSubmeshesOctree) {
-            try { m.createOrUpdateSubmeshesOctree(64, 2); } catch (e) { /* octree is an optimisation, not a requirement */ }
+            try {
+              m.createOrUpdateSubmeshesOctree(64, 2);
+            } catch (e) {
+              /* octree is an optimisation, not a requirement */
+            }
           }
           if (isStatic) {
-            m.freezeWorldMatrix();          // nothing moves, so stop recomputing it
-            m.material?.freeze();           // and stop re-evaluating shader state
+            m.freezeWorldMatrix(); // nothing moves, so stop recomputing it
+            m.material?.freeze(); // and stop re-evaluating shader state
           }
         });
 
         const { min, max } = computeBounds(result.meshes);
         if (min && max) {
-          modelMin = min; modelMax = max;
+          modelMin = min;
+          modelMax = max;
           modelCenter = min.add(max).scale(0.5);
           ground.setEnabled(false);
 
@@ -163,29 +172,39 @@ window.ViewerCore = (function () {
       const fill = document.getElementById("loaderFill");
       if (state) {
         el.classList.remove("hidden");
-        if (fill) {
-          fill.style.width = "0%";
-          let p = 0;
-          el._interval = setInterval(() => {
-            p = Math.min(p + Math.random() * 20, 92);
-            fill.style.width = p + "%";
-          }, 150);
-        }
+        if (fill) fill.style.width = "0%";
       } else {
-        clearInterval(el._interval);
         if (fill) fill.style.width = "100%";
         setTimeout(() => el.classList.add("hidden"), 250);
+      }
+    }
+
+    // Babylon passes browser download events here. A computable content length
+    // gives visitors honest progress instead of an artificial loading timer.
+    function updateLoadingProgress(event) {
+      const fill = document.getElementById("loaderFill");
+      const label = document.querySelector("#loadingScreen .loader-label");
+      if (!fill) return;
+      if (event && event.lengthComputable && event.total > 0) {
+        const percent = Math.min(95, Math.round((event.loaded / event.total) * 100));
+        fill.style.width = `${percent}%`;
+        if (label) label.textContent = `Loading model ${percent}%`;
+      } else if (label) {
+        label.textContent = "Loading model";
       }
     }
 
     function findFloorY(x, z) {
       if (!modelMax || !modelMin) return null;
       const rayStart = new BABYLON.Vector3(x, modelMax.y + 10, z);
-      const rayLength = (modelMax.y - modelMin.y) + 20;
+      const rayLength = modelMax.y - modelMin.y + 20;
       const ray = new BABYLON.Ray(rayStart, new BABYLON.Vector3(0, -1, 0), rayLength);
-      const hits = scene.multiPickWithRay(ray, (mesh) => mesh.name !== "ground" && loadedMeshes.includes(mesh));
+      const hits = scene.multiPickWithRay(
+        ray,
+        (mesh) => mesh.name !== "ground" && loadedMeshes.includes(mesh)
+      );
       if (!hits || hits.length === 0) return null;
-      const floorHits = hits.filter(h => {
+      const floorHits = hits.filter((h) => {
         if (!h.hit || !h.pickedPoint) return false;
         const normal = h.getNormal(true, true);
         return normal && normal.y > 0.7;
@@ -205,7 +224,7 @@ window.ViewerCore = (function () {
     // what stairs and split levels need.
     function surfaceHeightAt(x, z, fromY) {
       const down = new BABYLON.Vector3(0, -1, 0);
-      const length = (fromY - (modelMin ? modelMin.y : 0)) + 5;
+      const length = fromY - (modelMin ? modelMin.y : 0) + 5;
       const ray = new BABYLON.Ray(new BABYLON.Vector3(x, fromY, z), down, length);
       const hits = scene.multiPickWithRay(ray, isSolid);
       if (!hits || hits.length === 0) return null;
@@ -222,11 +241,7 @@ window.ViewerCore = (function () {
     // Horizontal blocker in the given direction, or null. Returns the surface
     // normal so the caller can slide along the wall instead of stopping dead.
     function wallNormalAt(x, y, z, dirX, dirZ, distance) {
-      const ray = new BABYLON.Ray(
-        new BABYLON.Vector3(x, y, z),
-        new BABYLON.Vector3(dirX, 0, dirZ),
-        distance
-      );
+      const ray = new BABYLON.Ray(new BABYLON.Vector3(x, y, z), new BABYLON.Vector3(dirX, 0, dirZ), distance);
       const hit = scene.pickWithRay(ray, isSolid);
       if (!hit || !hit.hit || !hit.pickedPoint) return null;
       return hit.getNormal(true, true);
@@ -254,7 +269,12 @@ window.ViewerCore = (function () {
       if (!modelCenter) return;
       // No authored position here, so the floor genuinely is the right source.
       const floorY = findFloorY(modelCenter.x, modelCenter.z);
-      placePlayer(modelCenter.x, modelCenter.z, floorY !== null ? floorY : modelMin.y, BABYLON.Vector3.Zero());
+      placePlayer(
+        modelCenter.x,
+        modelCenter.z,
+        floorY !== null ? floorY : modelMin.y,
+        BABYLON.Vector3.Zero()
+      );
     }
 
     function spawnAtRoom(h) {
@@ -278,8 +298,8 @@ window.ViewerCore = (function () {
     // preview, where the point is to see the edit as it is typed rather than
     // to watch a two-second glide.
     function previewRoom(h) {
-      stopTour();       // editing a view shouldn't fight a playing tour
-      moveAnim = null;  // a running travel animation would overwrite us
+      stopTour(); // editing a view shouldn't fight a playing tour
+      moveAnim = null; // a running travel animation would overwrite us
       stopWalking();
       walkCamera.position.copyFromFloats(h.position.x, h.position.y + EYE_HEIGHT, h.position.z);
       walkCamera.rotation.set(h.rx || 0, h.ry || 0, h.rz || 0);
@@ -298,14 +318,23 @@ window.ViewerCore = (function () {
     //     press W, and you shove yourself into the floor while collision
     //     shoves back (visible as jitter). Here movement is projected onto
     //     the horizontal plane using the camera's yaw only.
-    const MOVE_KEYS = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+    const MOVE_KEYS = new Set([
+      "KeyW",
+      "KeyA",
+      "KeyS",
+      "KeyD",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight"
+    ]);
     const MOVE_ACCELERATION = 12; // how quickly we reach full speed / stop (higher = snappier)
     // EYE_HEIGHT of 1.5 means this codebase already assumes the model is in
     // metres, so walking speed is a real-world constant rather than something
     // derived from the model's size — a big building shouldn't turn the
     // visitor into a sprinter. Long distances are what click-to-travel and
     // the room buttons are for; Shift covers the impatient case.
-    const WALK_SPEED = 1.8;   // metres/second — an unhurried real walking pace
+    const WALK_SPEED = 1.8; // metres/second — an unhurried real walking pace
     const SPRINT_MULTIPLIER = 2.4;
 
     // ---- Collision shape ----
@@ -319,7 +348,7 @@ window.ViewerCore = (function () {
     // lowest sits just above STEP_HEIGHT so the two rules can't disagree:
     // if a ray hits it, it was too tall to step onto anyway.
     const WALL_PROBE_HEIGHTS = [STEP_HEIGHT + 0.05, 0.9, EYE_HEIGHT - 0.1];
-    const FLOOR_FOLLOW = 14;  // how quickly the eye settles to a new floor height
+    const FLOOR_FOLLOW = 14; // how quickly the eye settles to a new floor height
 
     const pressedKeys = new Set();
     let sprinting = false;
@@ -327,7 +356,9 @@ window.ViewerCore = (function () {
     let targetFeetY = null; // floor height the eye is easing toward
 
     function isTypingTarget(target) {
-      return target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      return (
+        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+      );
     }
 
     window.addEventListener("keydown", (e) => {
@@ -353,12 +384,26 @@ window.ViewerCore = (function () {
 
     function updateWalkMovement(dt) {
       const yaw = walkCamera.rotation.y;
-      const fx = Math.sin(yaw), fz = Math.cos(yaw); // forward on the floor plane
-      let mx = 0, mz = 0;
-      if (pressedKeys.has("KeyW") || pressedKeys.has("ArrowUp")) { mx += fx; mz += fz; }
-      if (pressedKeys.has("KeyS") || pressedKeys.has("ArrowDown")) { mx -= fx; mz -= fz; }
-      if (pressedKeys.has("KeyD") || pressedKeys.has("ArrowRight")) { mx += fz; mz -= fx; }
-      if (pressedKeys.has("KeyA") || pressedKeys.has("ArrowLeft")) { mx -= fz; mz += fx; }
+      const fx = Math.sin(yaw),
+        fz = Math.cos(yaw); // forward on the floor plane
+      let mx = 0,
+        mz = 0;
+      if (pressedKeys.has("KeyW") || pressedKeys.has("ArrowUp")) {
+        mx += fx;
+        mz += fz;
+      }
+      if (pressedKeys.has("KeyS") || pressedKeys.has("ArrowDown")) {
+        mx -= fx;
+        mz -= fz;
+      }
+      if (pressedKeys.has("KeyD") || pressedKeys.has("ArrowRight")) {
+        mx += fz;
+        mz -= fx;
+      }
+      if (pressedKeys.has("KeyA") || pressedKeys.has("ArrowLeft")) {
+        mx -= fz;
+        mz += fx;
+      }
 
       const length = Math.hypot(mx, mz);
       const speed = WALK_SPEED * (sprinting ? SPRINT_MULTIPLIER : 1);
@@ -387,8 +432,13 @@ window.ViewerCore = (function () {
       // instead of squeezing through the seam.
       for (let pass = 0; pass < 2; pass++) {
         const moveLen = Math.hypot(dx, dz);
-        if (moveLen < 1e-6) { dx = 0; dz = 0; break; }
-        const dirX = dx / moveLen, dirZ = dz / moveLen;
+        if (moveLen < 1e-6) {
+          dx = 0;
+          dz = 0;
+          break;
+        }
+        const dirX = dx / moveLen,
+          dirZ = dz / moveLen;
 
         let normal = null;
         for (const h of WALL_PROBE_HEIGHTS) {
@@ -400,8 +450,13 @@ window.ViewerCore = (function () {
         // Project the movement onto the wall plane, using only the wall's
         // horizontal facing so a sloped surface can't launch us upward.
         const nLen = Math.hypot(normal.x, normal.z);
-        if (nLen < 1e-6) { dx = 0; dz = 0; break; } // floor/ceiling-facing: nowhere to slide
-        const nx = normal.x / nLen, nz = normal.z / nLen;
+        if (nLen < 1e-6) {
+          dx = 0;
+          dz = 0;
+          break;
+        } // floor/ceiling-facing: nowhere to slide
+        const nx = normal.x / nLen,
+          nz = normal.z / nLen;
         const into = dx * nx + dz * nz;
         if (into >= 0) break; // already moving away from this wall
         dx -= nx * into;
@@ -409,7 +464,8 @@ window.ViewerCore = (function () {
       }
 
       // ---- Floor check with a hard step limit ----
-      const nextX = pos.x + dx, nextZ = pos.z + dz;
+      const nextX = pos.x + dx,
+        nextZ = pos.z + dz;
       if (dx !== 0 || dz !== 0) {
         // Probe from just above the highest step we're willing to climb, so
         // anything taller simply isn't seen as ground.
@@ -466,7 +522,8 @@ window.ViewerCore = (function () {
       moveAnim = {
         from: walkCamera.position.clone(),
         to: target,
-        fromRot, toRot,
+        fromRot,
+        toRot,
         startTime: performance.now(),
         duration: Math.min(2200, Math.max(500, BABYLON.Vector3.Distance(walkCamera.position, target) * 300)),
         onArrive
@@ -516,7 +573,9 @@ window.ViewerCore = (function () {
       marker.classList.add("show");
     }
 
-    function easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+    function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
 
     scene.onBeforeRenderObservable.add(() => {
       // Clamped: after a tab-switch or a long frame hitch, an unclamped dt
@@ -558,7 +617,9 @@ window.ViewerCore = (function () {
         const el = document.getElementById("hotspot-" + i);
         if (!el) return;
         const coords = BABYLON.Vector3.Project(
-          h.position, BABYLON.Matrix.Identity(), scene.getTransformMatrix(),
+          h.position,
+          BABYLON.Matrix.Identity(),
+          scene.getTransformMatrix(),
           activeCam.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight())
         );
         if (coords.z > 0 && coords.z < 1) {
@@ -569,12 +630,6 @@ window.ViewerCore = (function () {
           el.style.display = "none";
         }
       });
-    }
-
-    function escapeHtml(s) {
-      const d = document.createElement("div");
-      d.textContent = s;
-      return d.innerHTML;
     }
 
     function formatNumber(value, decimals = 2) {
@@ -625,7 +680,7 @@ window.ViewerCore = (function () {
       }
       panel.classList.toggle("show", HOTSPOTS.length > 0);
       applyRoomHighlight(); // the buttons were just rebuilt
-      updateTourButton();   // a project can go from 1 to 2 views while editing
+      updateTourButton(); // a project can go from 1 to 2 views while editing
     }
 
     /* ---------------------------------------------------------------
@@ -689,7 +744,10 @@ window.ViewerCore = (function () {
       // a view can be deleted while the tour is mid-flight, and indexing past
       // the end would otherwise throw inside goToRoom.
       const h = HOTSPOTS[tourIndex];
-      if (!h) { stopTour(); return; }
+      if (!h) {
+        stopTour();
+        return;
+      }
       highlightRoom(tourIndex);
       // Highlight first, then travel: the button lights up as the camera starts
       // moving toward it rather than after it arrives.
@@ -703,7 +761,10 @@ window.ViewerCore = (function () {
       if (!tourActive) return;
       tourActive = false;
       tourIndex = -1;
-      if (tourTimer) { clearTimeout(tourTimer); tourTimer = null; }
+      if (tourTimer) {
+        clearTimeout(tourTimer);
+        tourTimer = null;
+      }
       // Drop the pending arrival callback so a travel animation still in
       // flight can't schedule another leg after we've stopped.
       if (moveAnim) moveAnim.onArrive = null;
@@ -717,9 +778,13 @@ window.ViewerCore = (function () {
     }
 
     function exportRooms() {
-      return HOTSPOTS.map(h => ({
-        x: h.position.x, y: h.position.y, z: h.position.z,
-        rx: h.rx || 0, ry: h.ry || 0, rz: h.rz || 0,
+      return HOTSPOTS.map((h) => ({
+        x: h.position.x,
+        y: h.position.y,
+        z: h.position.z,
+        rx: h.rx || 0,
+        ry: h.ry || 0,
+        rz: h.rz || 0,
         label: h.label
       }));
     }
@@ -729,8 +794,12 @@ window.ViewerCore = (function () {
     function exportStart() {
       if (!START) return null;
       return {
-        x: START.position.x, y: START.position.y, z: START.position.z,
-        rx: START.rx || 0, ry: START.ry || 0, rz: START.rz || 0
+        x: START.position.x,
+        y: START.position.y,
+        z: START.position.z,
+        rx: START.rx || 0,
+        ry: START.ry || 0,
+        rz: START.rz || 0
       };
     }
 
@@ -744,9 +813,13 @@ window.ViewerCore = (function () {
        array the rooms panel edits. Both stay in sync through
        refreshRoomUI(), so neither can show stale values.
        --------------------------------------------------------------- */
-    function inspectorEl(id) { return document.getElementById(id); }
+    function inspectorEl(id) {
+      return document.getElementById(id);
+    }
 
-    function hasInspector() { return editable && !!inspectorEl("inspectorPanel"); }
+    function hasInspector() {
+      return editable && !!inspectorEl("inspectorPanel");
+    }
 
     function selectedRoom() {
       return selectedRoomIndex !== null ? HOTSPOTS[selectedRoomIndex] || null : null;
@@ -782,7 +855,8 @@ window.ViewerCore = (function () {
           // Keep the selection sane: stay at the same slot if one still
           // exists there, otherwise fall back to the last view.
           if (HOTSPOTS.length === 0) selectedRoomIndex = null;
-          else if (selectedRoomIndex !== null && selectedRoomIndex >= HOTSPOTS.length) selectedRoomIndex = HOTSPOTS.length - 1;
+          else if (selectedRoomIndex !== null && selectedRoomIndex >= HOTSPOTS.length)
+            selectedRoomIndex = HOTSPOTS.length - 1;
           refreshRoomUI();
           emitRoomsChanged();
         });
@@ -803,7 +877,9 @@ window.ViewerCore = (function () {
           e.stopPropagation();
           HOTSPOTS.splice(i + 1, 0, {
             position: h.position.clone(),
+            rx: h.rx || 0,
             ry: h.ry || 0,
+            rz: h.rz || 0,
             label: h.label + " copy"
           });
           selectedRoomIndex = i + 1;
@@ -812,8 +888,38 @@ window.ViewerCore = (function () {
         });
 
         row.appendChild(remove);
+        if (i > 0) {
+          const moveUp = document.createElement("button");
+          moveUp.type = "button";
+          moveUp.className = "inspector-icon-btn";
+          moveUp.title = "Move view up";
+          moveUp.textContent = "↑";
+          moveUp.addEventListener("click", (e) => {
+            e.stopPropagation();
+            [HOTSPOTS[i - 1], HOTSPOTS[i]] = [HOTSPOTS[i], HOTSPOTS[i - 1]];
+            selectedRoomIndex = i - 1;
+            refreshRoomUI();
+            emitRoomsChanged();
+          });
+          row.appendChild(moveUp);
+        }
         row.appendChild(name);
         row.appendChild(duplicate);
+        if (i < HOTSPOTS.length - 1) {
+          const moveDown = document.createElement("button");
+          moveDown.type = "button";
+          moveDown.className = "inspector-icon-btn";
+          moveDown.title = "Move view down";
+          moveDown.textContent = "↓";
+          moveDown.addEventListener("click", (e) => {
+            e.stopPropagation();
+            [HOTSPOTS[i], HOTSPOTS[i + 1]] = [HOTSPOTS[i + 1], HOTSPOTS[i]];
+            selectedRoomIndex = i + 1;
+            refreshRoomUI();
+            emitRoomsChanged();
+          });
+          row.appendChild(moveDown);
+        }
         list.appendChild(row);
       });
     }
@@ -830,9 +936,10 @@ window.ViewerCore = (function () {
         if (details) details.style.display = "none";
         if (empty) {
           empty.style.display = "block";
-          empty.textContent = HOTSPOTS.length > 0
-            ? "Not set — visitors start at \u201C" + HOTSPOTS[0].label + "\u201D."
-            : "Not set — visitors start at the centre of the model.";
+          empty.textContent =
+            HOTSPOTS.length > 0
+              ? "Not set — visitors start at \u201C" + HOTSPOTS[0].label + "\u201D."
+              : "Not set — visitors start at the centre of the model.";
         }
         if (clear) clear.style.display = "none";
         if (go) go.style.display = "none";
@@ -893,7 +1000,7 @@ window.ViewerCore = (function () {
 
       // Every section header collapses its own section, so adding a section to
       // the markup needs no matching JS change here.
-      document.querySelectorAll(".inspector-head").forEach(head => {
+      document.querySelectorAll(".inspector-head").forEach((head) => {
         head.addEventListener("click", () => {
           const section = head.closest(".inspector-section");
           if (!section) return;
@@ -910,7 +1017,7 @@ window.ViewerCore = (function () {
           const h = selectedRoom();
           if (!h) return;
           h.label = name.value;
-          buildInspectorList();   // keep the list label live
+          buildInspectorList(); // keep the list label live
           emitRoomsChanged();
         });
         // Blank names would render an unclickable button in the viewer, so
@@ -997,7 +1104,10 @@ window.ViewerCore = (function () {
           refreshRoomUI();
           emitRoomsChanged();
           const nameInput = inspectorEl("inspectorName");
-          if (nameInput) { nameInput.focus(); nameInput.select(); }
+          if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+          }
         });
       }
 
@@ -1060,6 +1170,24 @@ window.ViewerCore = (function () {
       buildHotspotDOM();
       buildRoomsPanel();
       buildInspectorPanel();
+    }
+
+    function restoreEditorState(state) {
+      if (!editable || !state) return;
+      HOTSPOTS = (state.rooms || []).map((room) => ({
+        position: new BABYLON.Vector3(room.x, room.y, room.z),
+        label: room.label,
+        rx: asNumber(room.rx),
+        ry: asNumber(room.ry),
+        rz: asNumber(room.rz)
+      }));
+      START = toRoomLike(state.start);
+      selectedRoomIndex = HOTSPOTS.length
+        ? Math.min(state.selectedRoomIndex ?? 0, HOTSPOTS.length - 1)
+        : null;
+      refreshRoomUI();
+      emitRoomsChanged();
+      emitStartChanged();
     }
 
     if (editable) wireInspector();
@@ -1128,7 +1256,19 @@ window.ViewerCore = (function () {
 
     loadModel(config.modelUrl);
 
-    return { exportRooms, exportStart, goToRoom, spawnAtStart, spawnAtCenter, startTour, stopTour, toggleFullscreen, engine, scene };
+    return {
+      exportRooms,
+      exportStart,
+      restoreEditorState,
+      goToRoom,
+      spawnAtStart,
+      spawnAtCenter,
+      startTour,
+      stopTour,
+      toggleFullscreen,
+      engine,
+      scene
+    };
   }
 
   return { boot };

@@ -1,11 +1,18 @@
 {
-  "name": "walkthrough-platform",
+  "name": "viewora",
   "version": "0.1.0",
-  "description": "Phase 0: auth + upload + public shareable 3D walkthrough",
+  "description": "Viewora: create and share interactive 3D walkthroughs",
   "main": "backend/server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js"
+    "dev": "node backend/server.js",
+    "test": "node --test",
+    "lint": "eslint backend frontend/public/js test",
+    "format:check": "prettier --check \"**/*.{js,json,md,html,css,yml}\"",
+    "backup": "node backend/scripts/backup.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -18,6 +25,10 @@
     "nanoid": "^3.3.7"
   },
   "allowScripts": {
-    "better-sqlite3@11.10.0": true
+    "better-sqlite3@13.0.3": true
+  },
+  "devDependencies": {
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.6"
   }
 }

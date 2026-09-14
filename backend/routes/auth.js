@@ -3,23 +3,25 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../db");
 const { requireAuth } = require("../middleware/auth");
+const { createRateLimiter } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_RE = /^[0-9]{7,15}$/; // digits only — strip spaces/dashes/+ on the client before sending
+const authRateLimit = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 
 function issueTokenCookie(res, userId) {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
   res.cookie("token", token, {
-    httpOnly: true,               // JS on the page can't read this — blocks XSS token theft
+    httpOnly: true, // JS on the page can't read this — blocks XSS token theft
     secure: process.env.NODE_ENV === "production", // HTTPS-only in production
-    sameSite: "lax",               // basic CSRF protection
+    sameSite: "lax", // basic CSRF protection
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 }
 
-router.post("/register", async (req, res) => {
+router.post("/register", authRateLimit, async (req, res) => {
   const { fullName, email, mobile, password } = req.body || {};
 
   if (!fullName || !fullName.trim()) {
@@ -56,7 +58,7 @@ router.post("/register", async (req, res) => {
   res.json({ id: info.lastInsertRowid, email, fullName: fullName.trim() });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", authRateLimit, async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
     return res.status(400).json({ error: "Email aur password dono chahiye" });
@@ -83,7 +85,9 @@ router.post("/logout", (req, res) => {
 });
 
 router.get("/me", requireAuth, (req, res) => {
-  const user = db.prepare("SELECT id, email, full_name, mobile, created_at FROM users WHERE id = ?").get(req.userId);
+  const user = db
+    .prepare("SELECT id, email, full_name, mobile, created_at FROM users WHERE id = ?")
+    .get(req.userId);
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json(user);
 });

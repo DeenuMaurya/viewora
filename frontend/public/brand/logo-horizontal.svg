@@ -1,6 +1,6 @@
 <svg width="280" height="64" viewBox="0 0 280 64" xmlns="http://www.w3.org/2000/svg" role="img">
-<title>Sheetwalk</title>
-<desc>Sheetwalk logo: a floor-plan-and-walk-path icon beside the wordmark, "Sheet" in ivory and "walk" in italic brass.</desc>
+<title>Viewora</title>
+<desc>Viewora logo: a floor-plan-and-walk-path icon beside the wordmark, "View" in ivory and "ora" in italic brass.</desc>
 <g stroke="#c9a13b" stroke-width="1.5" stroke-linecap="round">
 <path d="M8 20 V8 H20" fill="none"/>
 <path d="M44 8 H56 V20" fill="none"/>
@@ -12,5 +12,5 @@
 <line x1="24.5" y1="30.5" x2="40.5" y2="35.5" stroke="#c9a13b" stroke-width="1.5" stroke-dasharray="3,2.5" stroke-linecap="round"/>
 <circle cx="24.5" cy="30.5" r="1.7" fill="none" stroke="#c9a13b" stroke-width="1.2"/>
 <circle cx="40.5" cy="35.5" r="2.1" fill="#c9a13b"/>
-<text x="76" y="40" font-family="Fraunces, Georgia, serif" font-size="28" font-weight="500" fill="#ece7d9">Sheet<tspan font-style="italic" fill="#c9a13b">walk</tspan></text>
+<text x="76" y="40" font-family="Fraunces, Georgia, serif" font-size="28" font-weight="500" fill="#ece7d9">View<tspan font-style="italic" fill="#c9a13b">ora</tspan></text>
 </svg>
