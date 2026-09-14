@@ -7,7 +7,9 @@ const { requireAuth } = require("../middleware/auth");
 const router = express.Router();
 const bucket = process.env.SUPABASE_STORAGE_BUCKET || "viewora-assets";
 const maxModelBytes = Number(process.env.MAX_MODEL_BYTES || 50 * 1024 * 1024);
+const maxThumbnailBytes = Number(process.env.MAX_THUMBNAIL_BYTES || 5 * 1024 * 1024);
 const maxStorageBytes = Number(process.env.MAX_STORAGE_BYTES_PER_USER || 1024 * 1024 * 1024);
+const thumbnailExtensions = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 
 function fail(res, status, error) {
   return res.status(status).json({ error });
@@ -146,6 +148,52 @@ router.get("/:id/editor", requireAuth, async (req, res, next) => {
               rz: p.start_rz || 0
             }
     });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.post("/:id/thumbnail-upload-url", requireAuth, async (req, res, next) => {
+  const { filename, size, contentType } = req.body || {};
+  if (
+    !thumbnailExtensions.has(extension(filename)) ||
+    !Number.isSafeInteger(size) ||
+    size < 1 ||
+    size > maxThumbnailBytes
+  ) {
+    return fail(res, 400, "Thumbnail must be a PNG, JPG, or WebP image up to 5MB");
+  }
+  if (!["image/png", "image/jpeg", "image/webp"].includes(contentType))
+    return fail(res, 400, "Invalid thumbnail type");
+  try {
+    const s = getSupabase();
+    const p = await owned(s, req.params.id, req.userId);
+    if (!p) return fail(res, 404, "Project nahi mila");
+    const current = await usage(s, req.userId);
+    if (current.bytes - Number(p.thumbnail_size_bytes || 0) + size > maxStorageBytes)
+      return fail(res, 413, "Storage limit reached for this account");
+    const key = uploadKey(req.userId, "thumbnails", extension(filename));
+    requireSupabase(
+      await s.from("projects").update({ thumbnail_filename: key, thumbnail_size_bytes: size }).eq("id", p.id)
+    );
+    if (p.thumbnail_filename) await s.storage.from(bucket).remove([p.thumbnail_filename]);
+    const upload = requireSupabase(await s.storage.from(bucket).createSignedUploadUrl(key));
+    return res.json({ uploadUrl: upload.signedUrl, uploadToken: upload.token });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.delete("/:id/thumbnail", requireAuth, async (req, res, next) => {
+  try {
+    const s = getSupabase();
+    const p = await owned(s, req.params.id, req.userId);
+    if (!p) return fail(res, 404, "Project nahi mila");
+    requireSupabase(
+      await s.from("projects").update({ thumbnail_filename: null, thumbnail_size_bytes: 0 }).eq("id", p.id)
+    );
+    if (p.thumbnail_filename) await s.storage.from(bucket).remove([p.thumbnail_filename]);
+    return res.json({ ok: true });
   } catch (e) {
     return next(e);
   }

@@ -224,6 +224,22 @@
       }
 
       async function uploadProjectThumbnail(id, file) {
+        const cloudRes = await fetch(`/api/projects/${id}/thumbnail-upload-url`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, size: file.size, contentType: file.type })
+        });
+        if (cloudRes.status !== 404) {
+          const cloudData = await cloudRes.json();
+          if (!cloudRes.ok) return { ok: false, error: cloudData.error };
+          try {
+            await uploadToSignedUrl(cloudData.uploadUrl, file, () => {}, file.type);
+            return { ok: true };
+          } catch (error) {
+            return { ok: false, error: error.message };
+          }
+        }
         const formData = new FormData();
         formData.append("thumbnail", file);
         const res = await fetch(`/api/projects/${id}/thumbnail`, {
@@ -413,11 +429,11 @@
         });
       }
 
-      function uploadToSignedUrl(url, file, onProgress) {
+      function uploadToSignedUrl(url, file, onProgress, contentType = "model/gltf-binary") {
         return new Promise((resolve, reject) => {
           const request = new XMLHttpRequest();
           request.open("PUT", url);
-          request.setRequestHeader("Content-Type", "model/gltf-binary");
+          request.setRequestHeader("Content-Type", contentType);
           request.upload.addEventListener("progress", (event) => {
             if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
           });

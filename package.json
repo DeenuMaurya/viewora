@@ -4,7 +4,7 @@
   "description": "Viewora: create and share interactive 3D walkthroughs",
   "main": "backend/server.js",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "start": "node backend/server.js",
