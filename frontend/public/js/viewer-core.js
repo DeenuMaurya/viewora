@@ -531,7 +531,6 @@ window.ViewerCore = (function () {
     }
 
     let pointerDownPos = null;
-<<<<<<< HEAD
     const activePointers = new Set();
 
     function pickAtClientPoint(clientX, clientY) {
@@ -548,29 +547,21 @@ window.ViewerCore = (function () {
       // one-finger drag remains the rotation control.
       if (activePointers.size > 1) pointerDownPos = null;
       else pointerDownPos = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
-=======
-    canvas.addEventListener("pointerdown", (e) => {
-      pointerDownPos = { x: e.clientX, y: e.clientY };
->>>>>>> parent of 70eed06 (fix:)
       stopTour(); // dragging to look or clicking to walk ends the tour
     });
 
     canvas.addEventListener("pointerup", (e) => {
-<<<<<<< HEAD
       const wasSingleTap =
         pointerDownPos && pointerDownPos.pointerId === e.pointerId && activePointers.size === 1;
       activePointers.delete(e.pointerId);
       if (!wasSingleTap) return;
-=======
-      if (!pointerDownPos) return;
->>>>>>> parent of 70eed06 (fix:)
       const dx = e.clientX - pointerDownPos.x;
       const dy = e.clientY - pointerDownPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       pointerDownPos = null;
       if (dist > 6) return;
 
-      const pick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => loadedMeshes.includes(mesh));
+      const pick = pickAtClientPoint(e.clientX, e.clientY);
       if (!pick || !pick.hit || !pick.pickedPoint) return;
       const floorY = findFloorY(pick.pickedPoint.x, pick.pickedPoint.z);
       if (floorY === null) return;
