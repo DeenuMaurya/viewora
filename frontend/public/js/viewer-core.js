@@ -531,14 +531,7 @@ window.ViewerCore = (function () {
     }
 
     let pointerDownPos = null;
-    const activePointers = new Map();
-    let lastPinchDistance = null;
-
-    function pinchDistance() {
-      const points = [...activePointers.values()];
-      if (points.length < 2) return null;
-      return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-    }
+    const activePointers = new Set();
 
     function pickAtClientPoint(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
@@ -549,37 +542,18 @@ window.ViewerCore = (function () {
 
     canvas.addEventListener("pointerdown", (e) => {
       canvas.setPointerCapture?.(e.pointerId);
-      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      lastPinchDistance = pinchDistance();
-      // A second finger begins a pinch gesture, never a floor tap.
+      activePointers.add(e.pointerId);
+      // A second finger is never a floor tap. Mobile has no pinch zoom;
+      // one-finger drag remains the rotation control.
       if (activePointers.size > 1) pointerDownPos = null;
       else pointerDownPos = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
       stopTour(); // dragging to look or clicking to walk ends the tour
     });
 
-    canvas.addEventListener(
-      "pointermove",
-      (e) => {
-        if (!activePointers.has(e.pointerId)) return;
-        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        const distance = pinchDistance();
-        if (distance && lastPinchDistance) {
-          // Pinch out zooms in; pinch in zooms out. UniversalCamera has no
-          // built-in pinch zoom, so adjust the lens field-of-view directly.
-          walkCamera.fov = BABYLON.Scalar.Clamp(walkCamera.fov * (lastPinchDistance / distance), 0.45, 1.25);
-          pointerDownPos = null;
-          e.preventDefault();
-        }
-        lastPinchDistance = distance;
-      },
-      { passive: false }
-    );
-
     canvas.addEventListener("pointerup", (e) => {
       const wasSingleTap =
         pointerDownPos && pointerDownPos.pointerId === e.pointerId && activePointers.size === 1;
       activePointers.delete(e.pointerId);
-      lastPinchDistance = pinchDistance();
       if (!wasSingleTap) return;
       const dx = e.clientX - pointerDownPos.x;
       const dy = e.clientY - pointerDownPos.y;
@@ -596,14 +570,14 @@ window.ViewerCore = (function () {
       // *inside* that object.
       if (pick.pickedPoint.y > floorY + STEP_HEIGHT) return;
       const target = new BABYLON.Vector3(pick.pickedPoint.x, floorY + EYE_HEIGHT, pick.pickedPoint.z);
-      stopWalking(); // don't let a held key fight the travel animation
+      stopWalking();
       showMoveMarker(e.clientX, e.clientY);
-      moveAnim = {
-        from: walkCamera.position.clone(),
-        to: target,
-        startTime: performance.now(),
-        duration: Math.min(2200, Math.max(500, BABYLON.Vector3.Distance(walkCamera.position, target) * 300))
-      };
+      // A floor tap selects a destination, not a look direction. Move the
+      // player directly while preserving the current camera rotation so a
+      // mobile tap never becomes an unexpected pan or turn.
+      moveAnim = null;
+      walkCamera.position.copyFrom(target);
+      targetFeetY = floorY;
     });
 
     function showMoveMarker(x, y) {
