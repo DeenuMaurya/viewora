@@ -572,12 +572,15 @@ window.ViewerCore = (function () {
       const target = new BABYLON.Vector3(pick.pickedPoint.x, floorY + EYE_HEIGHT, pick.pickedPoint.z);
       stopWalking();
       showMoveMarker(e.clientX, e.clientY);
-      // A floor tap selects a destination, not a look direction. Move the
-      // player directly while preserving the current camera rotation so a
-      // mobile tap never becomes an unexpected pan or turn.
-      moveAnim = null;
-      walkCamera.position.copyFrom(target);
-      targetFeetY = floorY;
+      // A floor tap selects a destination, not a look direction. Animate
+      // position only; omitting fromRot/toRot preserves the current camera
+      // rotation and prevents an unexpected pan or turn on mobile.
+      moveAnim = {
+        from: walkCamera.position.clone(),
+        to: target,
+        startTime: performance.now(),
+        duration: Math.min(1600, Math.max(350, BABYLON.Vector3.Distance(walkCamera.position, target) * 230))
+      };
     });
 
     function showMoveMarker(x, y) {
