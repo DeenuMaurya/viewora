@@ -97,6 +97,10 @@ window.ViewerCore = (function () {
     // travel there, WASD/arrows to walk.
     scene.activeCamera = walkCamera;
     walkCamera.attachControl(canvas, true);
+    // Babylon's default touch input moves a UniversalCamera forward/backward.
+    // Mobile uses the explicit pointer handler below instead: one finger only
+    // rotates the view, while a short floor tap selects a walking destination.
+    walkCamera.inputs.removeByType("FreeCameraTouchInput");
 
     let modelCenter = null,
       modelMin = null,
@@ -532,6 +536,7 @@ window.ViewerCore = (function () {
 
     let pointerDownPos = null;
     const activePointers = new Set();
+    let touchRotationPoint = null;
 
     function pickAtClientPoint(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
@@ -547,13 +552,36 @@ window.ViewerCore = (function () {
       // one-finger drag remains the rotation control.
       if (activePointers.size > 1) pointerDownPos = null;
       else pointerDownPos = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+      if (e.pointerType === "touch" && activePointers.size === 1) {
+        touchRotationPoint = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+      }
       stopTour(); // dragging to look or clicking to walk ends the tour
     });
+
+    canvas.addEventListener(
+      "pointermove",
+      (e) => {
+        if (!touchRotationPoint || touchRotationPoint.pointerId !== e.pointerId || activePointers.size !== 1)
+          return;
+        const dx = e.clientX - touchRotationPoint.x;
+        const dy = e.clientY - touchRotationPoint.y;
+        if (dx || dy) {
+          // Keep this deliberately direct: touching and dragging the screen
+          // rotates only the camera; it never translates the player/object.
+          walkCamera.rotation.y += dx * 0.006;
+          walkCamera.rotation.x = BABYLON.Scalar.Clamp(walkCamera.rotation.x + dy * 0.006, -1.45, 1.45);
+          pointerDownPos = null;
+          touchRotationPoint = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+        }
+      },
+      { passive: true }
+    );
 
     canvas.addEventListener("pointerup", (e) => {
       const wasSingleTap =
         pointerDownPos && pointerDownPos.pointerId === e.pointerId && activePointers.size === 1;
       activePointers.delete(e.pointerId);
+      if (touchRotationPoint?.pointerId === e.pointerId) touchRotationPoint = null;
       if (!wasSingleTap) return;
       const dx = e.clientX - pointerDownPos.x;
       const dy = e.clientY - pointerDownPos.y;
